@@ -37,7 +37,7 @@ func (q *Queries) DeleteSchedule(ctx context.Context, schedule DeleteSchedule) e
 
 type Station struct {
 	ID             int64
-	StationName    pgtype.Text
+	StationName    string
 	LaneID         int64
 	StationStartID int64
 	StationEndID   int64
