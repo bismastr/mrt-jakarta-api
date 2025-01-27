@@ -7,17 +7,18 @@ import (
 )
 
 const insertSchedule = `
-INSERT INTO schedules (line_id, time)
-VALUES ($1, $2)
+INSERT INTO schedules (line_id, time, is_holiday)
+VALUES ($1, $2, $3)
 `
 
 type InsertSchedule struct {
-	LineID int64
-	Time   pgtype.Time
+	LineID    int64
+	Time      pgtype.Time
+	IsHoliday pgtype.Bool
 }
 
 func (q *Queries) InsertSchedule(ctx context.Context, schedule InsertSchedule) error {
-	_, err := q.db.Exec(ctx, insertSchedule, schedule.LineID, schedule.Time)
+	_, err := q.db.Exec(ctx, insertSchedule, schedule.LineID, schedule.Time, schedule.IsHoliday)
 	return err
 }
 
