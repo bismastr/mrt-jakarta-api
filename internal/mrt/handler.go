@@ -1,7 +1,7 @@
 package mrt
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 )
 
@@ -16,6 +16,8 @@ func NewHandler(mrt *MrtService) *Handler {
 }
 
 func (h *Handler) GetAllStation(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Test GetAllStation")
-	h.mrtService.GetAllStation(r.Context())
+
+	result := h.mrtService.GetAllStation(r.Context())
+	json.NewEncoder(w).Encode(result)
+
 }
