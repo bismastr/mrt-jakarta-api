@@ -6,6 +6,47 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getSchedule = `
+SELECT
+  	stations.id,
+  	stations.name,
+  	lines.id AS lines_id,
+	lines.stations_id_start,
+  	lines.stations_id_end,
+  	end_stations.name AS stations_end_name,
+	start_stations.name AS stations_start_name,
+	schedules.time,
+	schedules.is_holiday
+FROM stations
+LEFT JOIN lines ON stations.id = lines.stations_id_start
+LEFT JOIN stations AS end_stations ON lines.stations_id_end = end_stations.id
+LEFT JOIN stations AS start_stations ON lines.stations_id_start = start_stations.id
+LEFT JOIN schedules ON lines.id = schedules.line_id
+ORDER BY stations.id
+`
+
+func (q *Queries) GetSchedule(ctx context.Context) ([]Schedule, error) {
+	rows, err := q.db.Query(ctx, getSchedule)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Schedule
+	for rows.Next() {
+		var i Schedule
+		err := rows.Scan(&i.ID, &i.Name, &i.LinesID, &i.StationsIDStart, &i.StationsIDEnd, &i.StationsEndName, &i.StationsStartName, &i.Time, &i.IsHoliday)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 const insertSchedule = `
 INSERT INTO schedules (line_id, time, is_holiday)
 VALUES ($1, $2, $3)

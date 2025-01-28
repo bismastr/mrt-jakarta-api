@@ -1,8 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type Server struct {
@@ -22,6 +25,8 @@ func NewServer() *Server {
 	}
 }
 
-func (s *Server) Start() {
+func (s *Server) Start(router *mux.Router) {
+	s.Handler = router
+	fmt.Println("Server started on port :8080")
 	s.ListenAndServe()
 }
