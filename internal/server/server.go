@@ -14,7 +14,7 @@ type Server struct {
 
 func NewServer() *Server {
 	s := &http.Server{
-		Addr:           ":8080",
+		Addr:           ":7839",
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
@@ -27,6 +27,6 @@ func NewServer() *Server {
 
 func (s *Server) Start(router *mux.Router) {
 	s.Handler = router
-	fmt.Println("Server started on port :8080")
+	fmt.Println("Server started on port :7839")
 	s.ListenAndServe()
 }
