@@ -22,7 +22,7 @@ LEFT JOIN lines ON stations.id = lines.stations_id_start
 LEFT JOIN stations AS end_stations ON lines.stations_id_end = end_stations.id
 LEFT JOIN stations AS start_stations ON lines.stations_id_start = start_stations.id
 LEFT JOIN schedules ON lines.id = schedules.line_id
-ORDER BY stations.id
+ORDER BY stations.id ASC, lines.id ASC, schedules.time ASC
 `
 
 func (q *Queries) GetSchedule(ctx context.Context) ([]Schedule, error) {

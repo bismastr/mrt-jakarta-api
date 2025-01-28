@@ -19,35 +19,31 @@ func NewMrtService(repo *repository.Queries) *MrtService {
 }
 
 func (s *MrtService) GetAllStation(ctx context.Context) []GetAllStation {
-	schedules, err := s.repo.GetSchedule(ctx)
+	schedules, err := s.repo.GetSchedule(ctx) // Ensure this uses your SQL query
 	if err != nil {
 		log.Printf("Error getting schedule: %s", err)
 	}
 
-	stationMap := make(map[int64]*GetAllStation)
+	var result []GetAllStation        //To store the result
+	var currentStation *GetAllStation //To track currentStation
+	var currentLine *Line             //To track currentLine
+
 	for _, v := range schedules {
-		//Check if statinomaps already have the init stations
-		stationValue, exists := stationMap[v.ID]
-		if !exists {
-			stationMap[v.ID] = &GetAllStation{
+		// Create a new station if it doesn't exist or new station is encountered
+		if currentStation == nil || currentStation.Station.StationID != v.ID {
+			result = append(result, GetAllStation{
 				Station: Station{
 					StationID:   v.ID,
 					StationName: v.Name,
 				},
 				Line: []Line{},
-			}
-			stationValue = stationMap[v.ID]
+			})
+			currentStation = &result[len(result)-1]
+			currentLine = nil
 		}
-
-		//make a map for line
-		lineMap := make(map[int64]*Line)
-		for i := range stationValue.Line {
-			lineMap[stationValue.Line[i].LineID] = &stationValue.Line[i]
-		}
-
-		line, exist := lineMap[v.LinesID]
-		if !exist {
-			stationValue.Line = append(stationValue.Line, Line{
+		// Create a new line if it doesn't exist or new line is encountered
+		if currentLine == nil || currentLine.LineID != v.LinesID {
+			currentStation.Line = append(currentStation.Line, Line{
 				LineID: v.LinesID,
 				StationStart: Station{
 					StationID:   v.StationsIDStart,
@@ -57,21 +53,22 @@ func (s *MrtService) GetAllStation(ctx context.Context) []GetAllStation {
 					StationID:   v.StationsIDEnd,
 					StationName: v.StationsEndName,
 				},
-				Schedule: []Schedule{},
+				ScheduleHoliday: []Schedule{},
+				ScheduleNormal:  []Schedule{},
 			})
-			line = &stationValue.Line[len(stationValue.Line)-1]
-			lineMap[v.LinesID] = line
+			currentLine = &currentStation.Line[len(currentStation.Line)-1]
 		}
 
-		line.Schedule = append(line.Schedule, Schedule{
+		// Append schedule to the current line
+		schedule := Schedule{
 			Time:      MicrosecondsToTimeString(v.Time.Microseconds),
 			IsHoliday: v.IsHoliday,
-		})
-	}
-
-	result := make([]GetAllStation, 0, len(stationMap))
-	for _, v := range stationMap {
-		result = append(result, *v)
+		}
+		if v.IsHoliday {
+			currentLine.ScheduleHoliday = append(currentLine.ScheduleHoliday, schedule)
+		} else {
+			currentLine.ScheduleNormal = append(currentLine.ScheduleNormal, schedule)
+		}
 	}
 
 	return result
