@@ -6,6 +6,46 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getScheduleById = `
+SELECT
+  	stations.id,
+  	stations.name,
+  	lines.id AS lines_id,
+	lines.stations_id_start,
+  	lines.stations_id_end,
+  	end_stations.name AS stations_end_name,
+	start_stations.name AS stations_start_name,
+	schedules.time,
+	schedules.is_holiday
+FROM stations
+LEFT JOIN lines ON stations.id = lines.stations_id_start
+LEFT JOIN stations AS end_stations ON lines.stations_id_end = end_stations.id
+LEFT JOIN stations AS start_stations ON lines.stations_id_start = start_stations.id
+LEFT JOIN schedules ON lines.id = schedules.line_id
+WHERE stations.id = $1 AND schedules.is_holiday = $2 AND lines.stations_id_end = $3
+ORDER BY stations.id ASC, lines.id ASC, schedules.time ASC
+`
+
+func (q *Queries) GetScheduleById(ctx context.Context, id int64, isHoliday bool, directionStationId int64) ([]Schedule, error) {
+	rows, err := q.db.Query(ctx, getScheduleById, id, isHoliday, directionStationId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []Schedule
+	for rows.Next() {
+		var i Schedule
+		err := rows.Scan(&i.ID, &i.Name, &i.LinesID, &i.StationsIDStart, &i.StationsIDEnd, &i.StationsEndName, &i.StationsStartName, &i.Time, &i.IsHoliday)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+
+	return items, nil
+}
+
 const getSchedule = `
 SELECT
   	stations.id,

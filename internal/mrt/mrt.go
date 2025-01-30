@@ -18,6 +18,49 @@ func NewMrtService(repo *repository.Queries) *MrtService {
 	}
 }
 
+func (s *MrtService) GetScheduleById(ctx context.Context, id int64, isHoliday bool, directionStationId int64) *GetStationById {
+	schedules, err := s.repo.GetScheduleById(ctx, id, isHoliday, directionStationId)
+	if err != nil {
+		log.Printf("Error getting schedule: %s", err)
+	}
+
+	scheduleFirstIndex := schedules[0]
+	result := GetStationById{
+		Station: Station{
+			StationID:   scheduleFirstIndex.ID,
+			StationName: scheduleFirstIndex.Name,
+		},
+		Line: Line{
+			LineID: scheduleFirstIndex.LinesID,
+			StationStart: Station{
+				StationID:   scheduleFirstIndex.StationsIDStart,
+				StationName: scheduleFirstIndex.StationsStartName,
+			},
+			StationEnd: Station{
+				StationID:   scheduleFirstIndex.StationsIDEnd,
+				StationName: scheduleFirstIndex.StationsEndName,
+			},
+			ScheduleNormal:  []Schedule{},
+			ScheduleHoliday: []Schedule{},
+		},
+	}
+
+	for _, v := range schedules {
+		schedule := Schedule{
+			Time:      MicrosecondsToTimeString(v.Time.Microseconds),
+			IsHoliday: v.IsHoliday,
+		}
+
+		if v.IsHoliday {
+			result.Line.ScheduleHoliday = append(result.Line.ScheduleHoliday, schedule)
+		} else {
+			result.Line.ScheduleNormal = append(result.Line.ScheduleNormal, schedule)
+		}
+	}
+
+	return &result
+}
+
 func (s *MrtService) GetAllStation(ctx context.Context) []GetAllStation {
 	schedules, err := s.repo.GetSchedule(ctx) // Ensure this uses your SQL query
 	if err != nil {

@@ -5,6 +5,11 @@ type GetAllStation struct {
 	Line    []Line  `json:"line"`
 }
 
+type GetStationById struct {
+	Station Station `json:"station"`
+	Line    Line    `json:"line"`
+}
+
 type Line struct {
 	LineID          int64      `json:"line_id"`
 	StationStart    Station    `json:"start_station"`

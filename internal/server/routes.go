@@ -9,6 +9,6 @@ func (s *Server) SetupRoutes(handler *mrt.Handler) *mux.Router {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/schedules", handler.GetAllStation).Methods("GET")
-
+	router.HandleFunc("/schedulesById", handler.GetScheduleById).Methods("GET")
 	return router
 }
