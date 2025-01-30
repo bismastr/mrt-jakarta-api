@@ -46,16 +46,24 @@ func (s *MrtService) GetScheduleById(ctx context.Context, id int64, isHoliday bo
 	}
 
 	for _, v := range schedules {
-		schedule := Schedule{
-			Time:      MicrosecondsToTimeString(v.Time.Microseconds),
-			IsHoliday: v.IsHoliday,
+		now := time.Now()
+		midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		elapsed := now.Sub(midnight)
+		currentMicroseconds := elapsed.Microseconds()
+
+		if v.Time.Microseconds > currentMicroseconds {
+			schedule := Schedule{
+				Time:      MicrosecondsToTimeString(v.Time.Microseconds),
+				IsHoliday: v.IsHoliday,
+			}
+
+			if v.IsHoliday {
+				result.Line.ScheduleHoliday = append(result.Line.ScheduleHoliday, schedule)
+			} else {
+				result.Line.ScheduleNormal = append(result.Line.ScheduleNormal, schedule)
+			}
 		}
 
-		if v.IsHoliday {
-			result.Line.ScheduleHoliday = append(result.Line.ScheduleHoliday, schedule)
-		} else {
-			result.Line.ScheduleNormal = append(result.Line.ScheduleNormal, schedule)
-		}
 	}
 
 	return &result
