@@ -14,8 +14,8 @@ type Line struct {
 	LineID          int64      `json:"line_id"`
 	StationStart    Station    `json:"start_station"`
 	StationEnd      Station    `json:"end_station"`
-	ScheduleNormal  []Schedule `json:"schedule_normal"`
-	ScheduleHoliday []Schedule `json:"schedule_holiday"`
+	ScheduleNormal  []Schedule `json:"schedule_normal,omitempty"`
+	ScheduleHoliday []Schedule `json:"schedule_holiday,omitempty"`
 }
 
 type Station struct {
@@ -26,4 +26,8 @@ type Station struct {
 type Schedule struct {
 	Time      string `json:"time"`
 	IsHoliday bool   `json:"is_holiday"`
+}
+
+type GetAllStationName struct {
+	Station Station `json:"station"`
 }

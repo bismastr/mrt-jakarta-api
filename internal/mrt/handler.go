@@ -41,3 +41,9 @@ func (h *Handler) GetScheduleById(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(result)
 }
+
+func (h *Handler) GetAllStationName(w http.ResponseWriter, r *http.Request) {
+	stations := h.mrtService.GetAllStationName(r.Context())
+
+	json.NewEncoder(w).Encode(stations)
+}

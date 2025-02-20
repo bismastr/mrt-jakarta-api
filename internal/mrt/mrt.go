@@ -18,6 +18,35 @@ func NewMrtService(repo *repository.Queries) *MrtService {
 	}
 }
 
+func (s *MrtService) GetAllStationName(ctx context.Context) []GetAllStationName {
+	lanes, err := s.repo.GetLanes(ctx)
+	if err != nil {
+		log.Printf("Error getting lanes: %s", err)
+	}
+
+	result := []GetAllStationName{}
+	result = append(result, GetAllStationName{
+		Station: Station{
+			StationID:   lanes[0].ID,
+			StationName: lanes[0].StationName,
+		},
+	})
+
+	for _, st := range lanes {
+		if len(result) > 0 && st.ID != result[len(result)-1].Station.StationID {
+			laneInit := GetAllStationName{
+				Station: Station{
+					StationID:   st.ID,
+					StationName: st.StationName,
+				},
+			}
+			result = append(result, laneInit)
+		}
+	}
+
+	return result
+}
+
 func (s *MrtService) GetScheduleById(ctx context.Context, id int64, isHoliday bool, directionStationId int64) *GetStationById {
 	schedules, err := s.repo.GetScheduleById(ctx, id, isHoliday, directionStationId)
 	if err != nil {
